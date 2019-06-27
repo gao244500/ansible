@@ -1,0 +1,5 @@
+- name: Install redis
+  hosts: redis
+  remote_user: root
+  roles:
+    - redis

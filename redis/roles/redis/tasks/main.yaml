@@ -1,0 +1,23 @@
+- name: modify lamguage
+  shell: localectl  set-locale LANG=zh_US.UTF8 && echo 'LANG="en_US.UTF-8"' > /etc/locale.conf
+
+- name: modify timezone
+  shell: ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && timedatectl set-timezone Asia/Shanghai
+
+- name: install package
+  yum: name={{ item }} state=latest
+  with_items:
+    - gcc 
+    - gcc-c++
+- name:  copy redis-3.0.0-rc5.tar.gz
+  copy: src=redis-3.0.0-rc5.tar.gz dest=/usr/src
+- name: tar zxf redis-3.0.0-rc5.tar.gz
+  shell:  mkdir -p  /usr/local/redis &&  tar zxf /usr/src/redis-3.0.0-rc5.tar.gz  -C /usr/local/src 
+- name: install redis
+  shell:  cd   /usr/local/src/redis-3.0.0-rc5 && make PREFIX=/usr/local/redis install && cd src/ && make install
+- name: 修改配置文件
+  copy: src=6379.conf dest=/usr/local/redis/conf/
+- name: 添加redis 控制脚本
+  copy: src=redis dest=/etc/init.d/
+- name: 添加到系统服务,并设置成开机自启
+  shell: chkconfig --add  /etc/init.d/redis && chkconfig  redis on 
