@@ -1,0 +1,54 @@
+#!/bin/sh
+#
+# /etc/init.d/tomcat
+# chkconfig: 345 63 37
+# description: tomcat  servlet container.
+# processname: tomcat 7.0.61
+
+# Source function library.
+#. /etc/init.d/functions
+# source networking configuration.
+#. /etc/sysconfig/network
+export JAVA_HOME=/usr/local/jdk1.8.0_11/
+tomcat_path=/usr/local/tomcat
+case $1 in
+    start)
+$tomcat_path/bin/startup.sh &> /dev/null
+    sleep  10   &&  ss -anpt| grep  8080&> /dev/null
+if [ $? != 0 ]
+then
+echo "tomcat 启动失败"
+else
+echo "tomcat 启动成功"
+fi
+    ;;
+    status)
+ss -anpt| grep LISTEN| grep 8080 &>  /dev/null
+if [  $? != 0 ]
+then
+echo "tomcat 服务已经关闭，没有检测到8080端口"
+else
+echo "tomcat 服务正在运行"
+fi
+    ;;
+    stop)
+    kill -9 `ps -aux| grep tomcat -w| grep "grep" -v| awk  '{print $2}'` & > /dev/null
+echo "tomcat 服务已关闭"
+    ;;
+    restart)
+    echo "tomcat 正在重启"
+    kill `ss -anpt| grep 8080 | awk  -F = '{print $2}'| awk  -F, '{print $1}'`  &> /dev/null
+    $tomcat_path/bin/startup.sh &> /dev/null
+    sleep  10   &&  ss -anpt| grep  8080&> /dev/null
+    if [ $? != 0 ]
+then
+echo "tomcat  重启失败" && exit 1
+else
+echo "tomcat  重启成功"
+fi
+    ;;
+  *)
+        echo $"Usage: $0 {start|stop|restart|}"
+        exit 2
+esac
+exit 0

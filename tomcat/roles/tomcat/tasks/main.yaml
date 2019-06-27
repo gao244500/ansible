@@ -1,0 +1,32 @@
+- name: modify lamguage
+  shell: localectl  set-locale LANG=zh_US.UTF8 && echo 'LANG="en_US.UTF-8"' > /etc/locale.conf
+
+- name: modify timezone
+  shell: ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && timedatectl set-timezone Asia/Shanghai
+
+- name: install epel-release
+  shell: name=epel-release state=latest
+
+#- name: install package
+#  yum: name={{ item }} state=latest
+#  with_items:
+#    - java
+- name: copy jdk1.8.0_11.tar.gz
+  copy: src=jdk1.8.0_11.tar.gz dest=/usr/src/
+- name: tar zxf jdk1.8.0_11.tar.gz
+  shell: tar zxf /usr/src/jdk1.8.0_11.tar.gz -C /usr/local 
+- name: set java path
+  shell: cat /etc/profile|grep ^JAVA_HOME  ;  if [ $? != 0  ];then echo -e "JAVA_HOME='/usr/local/jdk1.8.0_11/'\nCLASSPATH=\$JAVA_HOME/jre/lib/ext:\$JAVA_HOME/lib/tools.jar\nPATH=$PATH:\$JAVA_HOME/bin" >>  /etc/profile;fi && source  /etc/profile
+- name: tar xf apache-tomcat-8.5.41.tar.gz
+  unarchive: src=apache-tomcat-8.5.41.tar.gz  dest=/usr/local/
+- name: mv apache-tomcat-8.5.41 tomcat 
+  shell: if  [ ! -d /usr/local/tomcat  ];then cd /usr/local && mv apache-tomcat-8.5.41 tomcat ;fi
+- name: copy server.xml
+  copy: src=server.xml  dest=/usr/local/tomcat/conf/
+- name: copy tomcat 
+  copy: src=tomcat  dest=/etc/init.d
+- name: chkconfig --add /etc/init.d/tomcat && chmod +x /etc/init.d/tomcat  &&  chkconfig  tomcat  on 
+  shell:  chkconfig --add /etc/init.d/tomcat && chmod +x /etc/init.d/tomcat &&  chkconfig  tomcat on
+
+- name: start service 
+  service: name=tomcat state=restarted

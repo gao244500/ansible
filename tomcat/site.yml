@@ -1,0 +1,5 @@
+- name: Install tomcat
+  hosts: tomcat
+  remote_user: root
+  roles:
+    - tomcat
